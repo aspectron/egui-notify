@@ -12,7 +12,8 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [dependencies]
-egui = { version = "0.22", default-features = false }
+# egui = { version = "0.22", default-features = false }
+egui = { path="../egui/crates/egui", default-features = false }
 
 [dev-dependencies]
 eframe = { version = "0.22", default-features = false, features = [
