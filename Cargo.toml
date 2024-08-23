@@ -1,6 +1,6 @@
 [package]
 name = "egui-notify"
-version = "0.9.0"
+version = "0.15.0"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/ItsEthra/egui-notify"
@@ -16,8 +16,15 @@ path = "src/lib.rs"
 egui = { path="../egui/crates/egui", default-features = false }
 
 [dev-dependencies]
-eframe = { version = "0.22", default-features = false, features = [
+eframe = { version = "0.28.0", default-features = false, features = [
     "default_fonts",
     "glow",
 ] }
-egui-phosphor = "0.2.0"
+egui-phosphor = { git = "https://github.com/ItsEthra/egui-phosphor", branch = "main" }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "deny", priority = 0 }
+enum_glob_use = { level = "deny", priority = 2 }

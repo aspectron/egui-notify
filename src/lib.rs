@@ -49,6 +49,7 @@ pub struct Toasts {
 
 impl Toasts {
     /// Creates new [`Toasts`] instance.
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             anchor: Anchor::TopRight,
@@ -69,11 +70,10 @@ impl Toasts {
         if self.reverse {
             self.toasts.insert(0, toast);
             return self.toasts.get_mut(0).unwrap();
-        } else {
-            self.toasts.push(toast);
-            let l = self.toasts.len() - 1;
-            return self.toasts.get_mut(l).unwrap();
         }
+        self.toasts.push(toast);
+        let l = self.toasts.len() - 1;
+        self.toasts.get_mut(l).unwrap()
     }
 
     /// Dismisses the oldest toast
@@ -92,7 +92,7 @@ impl Toasts {
 
     /// Dismisses all toasts
     pub fn dismiss_all_toasts(&mut self) {
-        for toast in self.toasts.iter_mut() {
+        for toast in &mut self.toasts {
             toast.dismiss();
         }
     }
@@ -195,13 +195,13 @@ impl Toasts {
         toasts.retain(|t| !t.state.disappeared());
 
         // Start disappearing expired toasts
-        toasts.iter_mut().for_each(|t| {
+        for t in toasts.iter_mut() {
             if let Some((_initial_d, current_d)) = t.duration {
                 if current_d <= 0. {
-                    t.state = ToastState::Disapper
+                    t.state = ToastState::Disappear;
                 }
             }
-        });
+        }
 
         // `held` used to prevent sticky removal
         if ctx.input(|i| i.pointer.primary_released()) {
@@ -212,9 +212,16 @@ impl Toasts {
         let mut update = false;
 
         for (i, toast) in toasts.iter_mut().enumerate() {
-            // Decrease duration if idling
+            let anim_offset = toast.width * (1. - ease_in_cubic(toast.value));
+            pos.x += anim_offset * anchor.anim_side();
+            let rect = toast.calc_anchored_rect(pos, *anchor);
+
             if let Some((_, d)) = toast.duration.as_mut() {
-                if toast.state.idling() {
+                // Check if we hover over the toast and if true don't decrease the duration
+                let hover_pos = ctx.input(|i| i.pointer.hover_pos());
+                let is_outside_rect = hover_pos.map_or(true, |pos| !rect.contains(pos));
+
+                if is_outside_rect && toast.state.idling() {
                     *d -= ctx.input(|i| i.stable_dt);
                     update = true;
                 }
@@ -265,11 +272,10 @@ impl Toasts {
                 ToastLevel::None => None,
             };
 
-            let (action_width, action_height) = if let Some(icon_galley) = icon_galley.as_ref() {
-                (icon_galley.rect.width(), icon_galley.rect.height())
-            } else {
-                (0., 0.)
-            };
+            let (action_width, action_height) =
+                icon_galley.as_ref().map_or((0., 0.), |icon_galley| {
+                    (icon_galley.rect.width(), icon_galley.rect.height())
+                });
 
             // Create closing cross
             let cross_galley = if toast.closable {
@@ -287,11 +293,10 @@ impl Toasts {
                 None
             };
 
-            let (cross_width, cross_height) = if let Some(cross_galley) = cross_galley.as_ref() {
-                (cross_galley.rect.width(), cross_galley.rect.height())
-            } else {
-                (0., 0.)
-            };
+            let (cross_width, cross_height) =
+                cross_galley.as_ref().map_or((0., 0.), |cross_galley| {
+                    (cross_galley.rect.width(), cross_galley.rect.height())
+                });
 
             let icon_x_padding = (0., padding.x);
             let cross_x_padding = (padding.x, 0.);
@@ -307,12 +312,12 @@ impl Toasts {
                 cross_width + cross_x_padding.0 + cross_x_padding.1
             };
 
-            toast.width = icon_width_padded + caption_width + cross_width_padded + (padding.x * 2.);
-            toast.height = action_height.max(caption_height).max(cross_height) + padding.y * 2.;
-
-            let anim_offset = toast.width * (1. - ease_in_cubic(toast.value));
-            pos.x += anim_offset * anchor.anim_side();
-            let rect = toast.calc_anchored_rect(pos, *anchor);
+            toast.width = padding
+                .x
+                .mul_add(2., icon_width_padded + caption_width + cross_width_padded);
+            toast.height = padding
+                .y
+                .mul_add(2., action_height.max(caption_height).max(cross_height));
 
             // Required due to positioning of the next toast
             pos.x -= anim_offset * anchor.anim_side();
@@ -326,7 +331,7 @@ impl Toasts {
             {
                 let oy = toast.height / 2. - action_height / 2.;
                 let ox = padding.x + icon_x_padding.0;
-                p.galley(rect.min + vec2(ox, oy), icon_galley);
+                p.galley(rect.min + vec2(ox, oy), icon_galley, Color32::BLACK);
             }
 
             // Paint caption
@@ -342,7 +347,7 @@ impl Toasts {
                 cross_width + cross_x_padding.0
             };
             let ox = (toast.width / 2. - caption_width / 2.) + o_from_icon / 2. - o_from_cross / 2.;
-            p.galley(rect.min + vec2(ox, oy), caption_galley);
+            p.galley(rect.min + vec2(ox, oy), caption_galley, Color32::BLACK);
 
             // Paint cross
             if let Some(cross_galley) = cross_galley {
@@ -350,7 +355,7 @@ impl Toasts {
                 let oy = toast.height / 2. - cross_height / 2.;
                 let ox = toast.width - cross_width - cross_x_padding.1 - padding.x;
                 let cross_pos = rect.min + vec2(ox, oy);
-                p.galley(cross_pos, cross_galley);
+                p.galley(cross_pos, cross_galley, Color32::BLACK);
 
                 let screen_cross = Rect {
                     max: cross_pos + cross_rect.max.to_vec2(),
