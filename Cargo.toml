@@ -20,7 +20,7 @@ eframe = { version = "0.28.0", default-features = false, features = [
     "default_fonts",
     "glow",
 ] }
-egui-phosphor = { git = "https://github.com/ItsEthra/egui-phosphor", branch = "main" }
+# egui-phosphor = { git = "https://github.com/ItsEthra/egui-phosphor", branch = "main" }
 
 [lints.rust]
 unsafe_code = "forbid"
@@ -28,3 +28,5 @@ unsafe_code = "forbid"
 [lints.clippy]
 all = { level = "deny", priority = 0 }
 enum_glob_use = { level = "deny", priority = 2 }
+
+egui-phosphor = { path="../egui-phosphor"}
