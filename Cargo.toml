@@ -13,14 +13,17 @@ path = "src/lib.rs"
 
 [dependencies]
 # egui = { version = "0.22", default-features = false }
-egui = { path="../egui/crates/egui", default-features = false }
+# egui = { path="../egui/crates/egui", default-features = false }
+egui = { git = "https://github.com/aspectron/egui", branch = "omega"}
+
 
 [dev-dependencies]
 eframe = { version = "0.28.0", default-features = false, features = [
     "default_fonts",
     "glow",
 ] }
-# egui-phosphor = { git = "https://github.com/ItsEthra/egui-phosphor", branch = "main" }
+egui-phosphor = { git = "https://github.com/aspectron/egui-phosphor", branch = "omega" }
+# egui-phosphor = { path="../egui-phosphor"}
 
 [lints.rust]
 unsafe_code = "forbid"
@@ -29,4 +32,4 @@ unsafe_code = "forbid"
 all = { level = "deny", priority = 0 }
 enum_glob_use = { level = "deny", priority = 2 }
 
-egui-phosphor = { path="../egui-phosphor"}
+
