@@ -12,17 +12,17 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [dependencies]
-# egui = { version = "0.22", default-features = false }
+egui = { version = "0.28.1", default-features = false }
 # egui = { path="../egui/crates/egui", default-features = false }
-egui = { git = "https://github.com/aspectron/egui", branch = "omega"}
+# egui = { git = "https://github.com/aspectron/egui", branch = "omega"}
 
 
 [dev-dependencies]
-eframe = { version = "0.28.0", default-features = false, features = [
+eframe = { version = "0.28.1", default-features = false, features = [
     "default_fonts",
     "glow",
 ] }
-egui-phosphor = { git = "https://github.com/aspectron/egui-phosphor", branch = "omega" }
+egui-phosphor = { git = "https://github.com/aspectron/egui-phosphor", branch = "gamma" }
 # egui-phosphor = { path="../egui-phosphor"}
 
 [lints.rust]
